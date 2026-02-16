@@ -1,0 +1,37 @@
+:root {
+    /* Colors */
+    --color-bg: #F7F6F3;
+    --color-text-primary: #111111;
+    --color-text-secondary: #555555; /* Slightly lighter for less important text */
+    --color-accent: #8B0000;
+    --color-accent-hover: #660000; /* Darker for hover */
+    --color-success: #2E7D32; /* Muted Green */
+    --color-warning: #F57F17; /* Muted Amber */
+    --color-border: #E0E0E0;
+    --color-white: #FFFFFF;
+
+    /* Typography */
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+    --line-height-body: 1.6;
+    --line-height-heading: 1.2;
+
+    /* Spacing */
+    --space-1: 8px;
+    --space-2: 16px;
+    --space-3: 24px;
+    --space-4: 40px;
+    --space-5: 64px;
+
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 200ms ease-in-out;
+    
+    /* Layout */
+    --max-width-text: 720px;
+    --sidebar-width: 30%;
+}

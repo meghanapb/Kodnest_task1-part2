@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KodNest Premium Build System</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Design System Styles -->
+    <link rel="stylesheet" href="styles/variables.css">
+    <link rel="stylesheet" href="styles/reset.css">
+    <link rel="stylesheet" href="styles/typography.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+
+    <div class="app-shell">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="project-name">KodNest Premium</div>
+            <div class="progress-indicator">Step 1 / 5</div>
+            <div class="status-badge in-progress">In Progress</div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Context Header -->
+            <header class="context-header">
+                <h1>Define Project Goals</h1>
+                <p class="context-header-subtext">Set the foundation for your new premium SaaS product with a clear vision.</p>
+            </header>
+
+            <div class="workspace-container">
+                <!-- Primary Workspace -->
+                <section class="primary-workspace">
+                    <div class="card">
+                        <h2>Workspace Area</h2>
+                        <p>This is where the main interaction happens. The design is calm and intentional.</p>
+                        
+                        <div class="input-group">
+                            <label class="input-label">Project Name</label>
+                            <input type="text" class="input-field" placeholder="e.g. Acme Corp Redesign" value="KodNest Premium Build System">
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Description</label>
+                            <textarea class="input-field" rows="4" placeholder="Describe the project...">A premium system design for serious builders.</textarea>
+                        </div>
+
+                        <h3>Typography Scale</h3>
+                        <h4>Heading 4</h4>
+                        <h5>Heading 5</h5>
+                        <p class="text-small">Small text for captions or secondary information.</p>
+                    </div>
+
+                    <div class="card">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📂</div>
+                            <h3>No Assets Uploaded</h3>
+                            <p>Upload your initial assets to get started.</p>
+                            <button class="btn btn-secondary">Upload Assets</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Secondary Panel -->
+                <aside class="secondary-panel">
+                    <div class="card">
+                        <h3 class="panel-title">Step Guidance</h3>
+                        <p class="text-small">Follow these instructions to complete the current step. Accuracy is key.</p>
+                        
+                        <div class="prompt-box">
+                            Current Task: Define the core value proposition of the application.
+                        </div>
+
+                        <div class="panel-actions">
+                            <button class="btn btn-primary panel-btn">Copy Prompt</button>
+                            <button class="btn btn-secondary panel-btn">Build in Lovable</button>
+                            <div style="height: 1px; background: var(--color-border); margin: 8px 0;"></div>
+                            <button class="btn btn-secondary panel-btn">It Worked</button>
+                            <button class="btn btn-secondary panel-btn" style="color: #EF4444; border-color: #EF4444;">Report Error</button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+        </main>
+
+        <!-- Proof Footer -->
+        <footer class="proof-footer">
+            <label class="proof-item">
+                <input type="checkbox" checked> UI Built
+            </label>
+            <label class="proof-item">
+                <input type="checkbox"> Logic Working
+            </label>
+            <label class="proof-item">
+                <input type="checkbox"> Test Passed
+            </label>
+            <label class="proof-item">
+                <input type="checkbox"> Deployed
+            </label>
+        </footer>
+    </div>
+
+</body>
+</html>
