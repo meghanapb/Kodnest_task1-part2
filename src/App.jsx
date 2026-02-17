@@ -7,7 +7,9 @@ import {
   Practice,
   Assessments,
   Resources,
-  Profile
+  Profile,
+  AnalysisResults,
+  AnalysisHistory
 } from './pages/DashboardPages';
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
           <Route index element={<DashboardHome />} />
           <Route path="practice" element={<Practice />} />
           <Route path="assessments" element={<Assessments />} />
+          <Route path="history" element={<AnalysisHistory />} />
+          <Route path="results" element={<AnalysisResults />} />
           <Route path="resources" element={<Resources />} />
           <Route path="profile" element={<Profile />} />
         </Route>
