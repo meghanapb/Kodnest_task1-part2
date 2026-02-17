@@ -6,9 +6,9 @@ import {
 import {
     Card, CardContent, CardDescription, CardHeader, CardTitle
 } from '../components/ui/Card';
-import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight } from 'lucide-react';
+import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { analyzeJD, saveToHistory, getHistory, getLatestAnalysis } from '../lib/analysis';
+import { analyzeJD, saveToHistory, getHistory, getLatestAnalysis, updateAnalysis } from '../lib/analysis';
 
 // Mock Data for Radar Chart
 const skillData = [
@@ -281,6 +281,8 @@ export const AnalysisResults = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [analysis, setAnalysis] = useState(location.state?.analysis || null);
+    const [skillConfidence, setSkillConfidence] = useState({});
+    const [currentScore, setCurrentScore] = useState(0);
 
     useEffect(() => {
         if (!analysis) {
@@ -290,10 +292,71 @@ export const AnalysisResults = () => {
             } else {
                 navigate('/dashboard/assessments');
             }
+        } else {
+            setSkillConfidence(analysis.skillConfidenceMap || {});
+            setCurrentScore(analysis.currentScore || analysis.readinessScore);
         }
     }, [analysis, navigate]);
 
+    useEffect(() => {
+        if (analysis) {
+            const baseScore = analysis.readinessScore;
+            let adjustment = 0;
+            const allSkills = Object.values(analysis.extractedSkills).flat();
+
+            allSkills.forEach(skill => {
+                const confidence = skillConfidence[skill] || 'practice';
+                adjustment += (confidence === 'know' ? 2 : -2);
+            });
+
+            const newScore = Math.min(100, Math.max(0, baseScore + adjustment));
+            setCurrentScore(newScore);
+
+            // Debounced/Immediate save to localStorage
+            const timeoutId = setTimeout(() => {
+                updateAnalysis(analysis.id, {
+                    skillConfidenceMap: skillConfidence,
+                    currentScore: newScore
+                });
+            }, 500);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [skillConfidence, analysis]);
+
+    const handleToggleSkill = (skill) => {
+        setSkillConfidence(prev => ({
+            ...prev,
+            [skill]: prev[skill] === 'know' ? 'practice' : 'know'
+        }));
+    };
+
+    const copyToClipboard = (text, title) => {
+        navigator.clipboard.writeText(text);
+        alert(`${title} copied to clipboard!`);
+    };
+
+    const downloadTxt = () => {
+        const sections = [
+            `Analysis for ${analysis.role} at ${analysis.company}`,
+            `Readiness Score: ${currentScore}%`,
+            `\n7-DAY PREPARATION PLAN\n${Object.entries(analysis.plan).map(([day, task]) => `${day}: ${task}`).join('\n')}`,
+            `\nROUND-WISE CHECKLIST\n${analysis.checklist.map(r => `${r.round}:\n${r.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`,
+            `\nTOP 10 INTERVIEW QUESTIONS\n${analysis.questions.map((q, i) => `${i + 1}. [${q.skill}] ${q.question}`).join('\n')}`
+        ];
+        const blob = new Blob([sections.join('\n')], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Analysis_${analysis.company}_${analysis.role}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     if (!analysis) return null;
+
+    const weakSkills = Object.values(analysis.extractedSkills).flat().filter(s => (skillConfidence[s] || 'practice') === 'practice').slice(0, 3);
 
     return (
         <div className="p-8 space-y-8 animate-in slide-in-from-bottom-4 duration-500">
@@ -302,30 +365,46 @@ export const AnalysisResults = () => {
                     <h1 className="text-3xl font-bold text-slate-900">{analysis.role} at {analysis.company}</h1>
                     <p className="text-slate-500">Analyzed on {new Date(analysis.createdAt).toLocaleDateString()} at {new Date(analysis.createdAt).toLocaleTimeString()}</p>
                 </div>
-                <button
-                    onClick={() => navigate('/dashboard/assessments')}
-                    className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2"
-                >
-                    <PlusCircle size={18} />
-                    New Analysis
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={downloadTxt}
+                        className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2"
+                    >
+                        <Download size={18} />
+                        Export TXT
+                    </button>
+                    <button
+                        onClick={() => navigate('/dashboard/assessments')}
+                        className="bg-primary text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-primary/20 transition-all flex items-center gap-2"
+                    >
+                        <PlusCircle size={18} />
+                        New Analysis
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Score & Skills */}
                 <div className="lg:col-span-1 space-y-8">
-                    <Card className="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-white to-slate-50">
+                    <Card className="flex flex-col items-center justify-center p-8 bg-gradient-to-br from-white to-slate-50 border-primary/10">
                         <CardHeader className="text-center p-0 mb-4">
-                            <CardTitle>Readiness Score</CardTitle>
+                            <CardTitle>Overall Readiness</CardTitle>
+                            <CardDescription>Live Score (Adjusted)</CardDescription>
                         </CardHeader>
-                        <CircularProgress value={analysis.readinessScore} />
+                        <CircularProgress value={currentScore} />
+                        <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-400">
+                            <span>Base: {analysis.readinessScore}%</span>
+                            <span className={cn(currentScore >= analysis.readinessScore ? "text-green-500" : "text-amber-500")}>
+                                {currentScore >= analysis.readinessScore ? "+" : ""}{currentScore - analysis.readinessScore}%
+                            </span>
+                        </div>
                     </Card>
 
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <FileText className="text-primary" />
-                                Extracted Skills
+                                Interactive Skill Map
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -334,11 +413,24 @@ export const AnalysisResults = () => {
                                     <div key={cat} className="space-y-2">
                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{cat}</p>
                                         <div className="flex flex-wrap gap-2">
-                                            {skills.map(s => (
-                                                <span key={s} className="bg-primary/5 text-primary text-xs font-medium px-2.5 py-1 rounded-full border border-primary/10">
-                                                    {s}
-                                                </span>
-                                            ))}
+                                            {skills.map(s => {
+                                                const isKnown = skillConfidence[s] === 'know';
+                                                return (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => handleToggleSkill(s)}
+                                                        className={cn(
+                                                            "text-xs font-medium px-2.5 py-1.5 rounded-full border transition-all flex items-center gap-1.5",
+                                                            isKnown
+                                                                ? "bg-green-50 text-green-700 border-green-200"
+                                                                : "bg-amber-50 text-amber-700 border-amber-200"
+                                                        )}
+                                                    >
+                                                        {isKnown ? <CheckCircle size={12} /> : <Target size={12} />}
+                                                        {s}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                 ))
@@ -352,11 +444,19 @@ export const AnalysisResults = () => {
                 {/* Plan & Checklist */}
                 <div className="lg:col-span-2 space-y-8">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <CalendarDays className="text-primary" />
-                                7-Day Preparation Plan
-                            </CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="space-y-1">
+                                <CardTitle className="flex items-center gap-2">
+                                    <CalendarDays className="text-primary" />
+                                    7-Day Preparation Plan
+                                </CardTitle>
+                            </div>
+                            <button
+                                onClick={() => copyToClipboard(Object.entries(analysis.plan).map(([day, task]) => `${day}: ${task}`).join('\n'), "Plan")}
+                                className="p-2 text-slate-400 hover:text-primary transition-colors"
+                            >
+                                <Copy size={18} />
+                            </button>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {Object.entries(analysis.plan).map(([day, task]) => (
@@ -369,11 +469,19 @@ export const AnalysisResults = () => {
                     </Card>
 
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <ListChecks className="text-primary" />
-                                Round-wise Checklist
-                            </CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="space-y-1">
+                                <CardTitle className="flex items-center gap-2">
+                                    <ListChecks className="text-primary" />
+                                    Round-wise Checklist
+                                </CardTitle>
+                            </div>
+                            <button
+                                onClick={() => copyToClipboard(analysis.checklist.map(r => `${r.round}:\n${r.items.map(i => `- ${i}`).join('\n')}`).join('\n\n'), "Checklist")}
+                                className="p-2 text-slate-400 hover:text-primary transition-colors"
+                            >
+                                <Copy size={18} />
+                            </button>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {analysis.checklist.map((round) => (
@@ -393,11 +501,19 @@ export const AnalysisResults = () => {
                     </Card>
 
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <HelpCircle className="text-primary" />
-                                Top 10 Interview Questions
-                            </CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="space-y-1">
+                                <CardTitle className="flex items-center gap-2">
+                                    <HelpCircle className="text-primary" />
+                                    Top 10 Interview Questions
+                                </CardTitle>
+                            </div>
+                            <button
+                                onClick={() => copyToClipboard(analysis.questions.map((q, i) => `${i + 1}. [${q.skill}] ${q.question}`).join('\n'), "Questions")}
+                                className="p-2 text-slate-400 hover:text-primary transition-colors"
+                            >
+                                <Copy size={18} />
+                            </button>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 gap-4">
@@ -412,6 +528,36 @@ export const AnalysisResults = () => {
                     </Card>
                 </div>
             </div>
+
+            {/* Action Next Box */}
+            <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                                <Lightbulb size={32} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Recommended Next Action</h3>
+                                {weakSkills.length > 0 ? (
+                                    <p className="text-slate-600">
+                                        Focus on these weak areas: <span className="font-bold text-primary">{weakSkills.join(', ')}</span>.
+                                    </p>
+                                ) : (
+                                    <p className="text-slate-600">You're in great shape! Ready to dominate the interview.</p>
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                            <div className="hidden md:block h-12 w-px bg-primary/20"></div>
+                            <div className="text-center md:text-right">
+                                <p className="text-sm font-bold text-primary">Start Day 1 plan now.</p>
+                                <p className="text-xs text-slate-500 font-medium whitespace-nowrap">Consistency is your best friend.</p>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 };

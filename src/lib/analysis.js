@@ -225,3 +225,18 @@ export const getHistory = () => {
 export const getLatestAnalysis = () => {
     return JSON.parse(localStorage.getItem('latest_analysis') || 'null');
 };
+
+export const updateAnalysis = (id, updates) => {
+    // Update history
+    const history = JSON.parse(localStorage.getItem('jd_history') || '[]');
+    const updatedHistory = history.map(item =>
+        item.id === id ? { ...item, ...updates } : item
+    );
+    localStorage.setItem('jd_history', JSON.stringify(updatedHistory));
+
+    // Update latest_analysis if matches
+    const latest = getLatestAnalysis();
+    if (latest && latest.id === id) {
+        localStorage.setItem('latest_analysis', JSON.stringify({ ...latest, ...updates }));
+    }
+};
