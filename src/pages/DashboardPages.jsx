@@ -6,7 +6,7 @@ import {
 import {
     Card, CardContent, CardDescription, CardHeader, CardTitle
 } from '../components/ui/Card';
-import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target, Building2, Users, Info, Clock } from 'lucide-react';
+import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target, Building2, Users, Info, Clock, ShieldCheck, Lock, Unlock, RotateCcw } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { analyzeJD, saveToHistory, getHistory, getLatestAnalysis, updateAnalysis } from '../lib/analysis';
 
@@ -733,3 +733,194 @@ export const Profile = () => (
         <p className="text-slate-600">Manage your account and view your achievements.</p>
     </div>
 );
+
+export const TestChecklist = () => {
+    const [tests, setTests] = useState(() => {
+        const saved = localStorage.getItem('prp_test_checklist');
+        return saved ? JSON.parse(saved) : Array(10).fill(false);
+    });
+
+    const checklistItems = [
+        { label: "JD required validation works", hint: "Try submitting empty JD in Analysis form." },
+        { label: "Short JD warning shows for <200 chars", hint: "Type few characters in JD field and look for amber box." },
+        { label: "Skills extraction groups correctly", hint: "Use sample JD with Java, React, SQL and check Results map." },
+        { label: "Round mapping changes based on company + skills", hint: "Compare results for 'Google' vs 'Small Startup' names." },
+        { label: "Score calculation is deterministic", hint: "Check if same JD always gives the same Base Score." },
+        { label: "Skill toggles update score live", hint: "Click several skills in Results and watch 'Adjusted Score'." },
+        { label: "Changes persist after refresh", hint: "Toggle skills, refresh browser, and check if toggles stay." },
+        { label: "History saves and loads correctly", hint: "Complete analysis, go to History, then click the card to return." },
+        { label: "Export buttons copy the correct content", hint: "Click Copy on Plan/Checklist and paste into Notepad." },
+        { label: "No console errors on core pages", hint: "Right-click -> Inspect -> Console. Should be clean." }
+    ];
+
+    const toggleTest = (index) => {
+        const newTests = [...tests];
+        newTests[index] = !newTests[index];
+        setTests(newTests);
+        localStorage.setItem('prp_test_checklist', JSON.stringify(newTests));
+    };
+
+    const resetChecklist = () => {
+        if (confirm("Reset all test progress?")) {
+            const cleared = Array(10).fill(false);
+            setTests(cleared);
+            localStorage.setItem('prp_test_checklist', JSON.stringify(cleared));
+        }
+    };
+
+    const passedCount = tests.filter(Boolean).length;
+
+    return (
+        <div className="p-8 max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-end">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Test Checklist</h1>
+                    <p className="text-slate-500">Verify all core features before deployment.</p>
+                </div>
+                <button
+                    onClick={resetChecklist}
+                    className="flex items-center gap-2 text-slate-400 hover:text-red-500 transition-colors text-sm font-semibold"
+                >
+                    <RotateCcw size={16} />
+                    Reset checklist
+                </button>
+            </div>
+
+            <Card className={cn(
+                "border-2 transition-all",
+                passedCount === 10 ? "border-green-200 bg-green-50/30" : "border-slate-200"
+            )}>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="text-xl">Tests Passed: {passedCount} / 10</CardTitle>
+                        {passedCount < 10 ? (
+                            <p className="text-amber-600 text-sm font-medium mt-1 flex items-center gap-1">
+                                <Info size={14} /> Fix issues before shipping.
+                            </p>
+                        ) : (
+                            <p className="text-green-600 text-sm font-medium mt-1 flex items-center gap-1">
+                                <ShieldCheck size={14} /> System ready for deployment.
+                            </p>
+                        )}
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4 pt-4">
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                        <div
+                            className={cn(
+                                "h-full transition-all duration-500 ease-out",
+                                passedCount === 10 ? "bg-green-500" : "bg-primary"
+                            )}
+                            style={{ width: `${passedCount * 10}%` }}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-3">
+                {checklistItems.map((item, idx) => (
+                    <div
+                        key={idx}
+                        onClick={() => toggleTest(idx)}
+                        className={cn(
+                            "flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all",
+                            tests[idx]
+                                ? "bg-white border-green-200 shadow-sm"
+                                : "bg-white border-slate-100 hover:border-primary/20"
+                        )}
+                    >
+                        <div className={cn(
+                            "mt-0.5 w-6 h-6 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors",
+                            tests[idx] ? "bg-green-500 border-green-500 text-white" : "border-slate-200"
+                        )}>
+                            {tests[idx] && <CheckCircle2 size={16} />}
+                        </div>
+                        <div className="flex-grow">
+                            <p className={cn(
+                                "font-semibold transition-colors",
+                                tests[idx] ? "text-slate-900" : "text-slate-600"
+                            )}>{item.label}</p>
+                            <p className="text-xs text-slate-400 mt-0.5">How to test: {item.hint}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {passedCount === 10 && (
+                <button
+                    onClick={() => navigate('/dashboard/08-ship')}
+                    className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-200 animate-in zoom-in-95 duration-300"
+                >
+                    <Unlock size={20} />
+                    Proceed to Ship
+                </button>
+            )}
+        </div>
+    );
+};
+
+export const ShipPage = () => {
+    const navigate = useNavigate();
+    const [isLocked, setIsLocked] = useState(true);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('prp_test_checklist');
+        if (saved) {
+            const tests = JSON.parse(saved);
+            if (tests.filter(Boolean).length === 10) {
+                setIsLocked(false);
+            }
+        }
+    }, []);
+
+    if (isLocked) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-8 text-center animate-in fade-in duration-500">
+                <div className="w-24 h-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-red-50">
+                    <Lock size={48} />
+                </div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">Ship Lock Active</h1>
+                <p className="text-slate-500 max-w-md mb-8">
+                    Deployment is restricted until all 10 tests in the checklist are passed.
+                    Please verify your implementation thoroughly.
+                </p>
+                <button
+                    onClick={() => navigate('/dashboard/07-test')}
+                    className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
+                >
+                    Return to Checklist
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-8 text-center animate-in zoom-in-95 duration-500">
+            <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-green-50 animate-bounce">
+                <ShieldCheck size={48} />
+            </div>
+            <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Ready for Shipment</h1>
+            <p className="text-slate-600 max-w-md mb-8">
+                All quality gates have been cleared. Platform is stable, verified, and follows the premium design standards.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg mb-8">
+                <div className="p-4 bg-white rounded-xl border border-slate-100 text-left">
+                    <p className="text-xs font-bold text-slate-400 uppercase mb-1">Status</p>
+                    <p className="font-bold text-green-600 flex items-center gap-2">
+                        <CheckCircle2 size={16} /> Verified
+                    </p>
+                </div>
+                <div className="p-4 bg-white rounded-xl border border-slate-100 text-left">
+                    <p className="text-xs font-bold text-slate-400 uppercase mb-1">Version</p>
+                    <p className="font-bold text-slate-800">1.2.0-stable</p>
+                </div>
+            </div>
+            <button
+                className="bg-green-600 text-white px-12 py-4 rounded-2xl font-bold text-xl hover:bg-green-700 shadow-2xl shadow-green-200 transition-all transform hover:scale-105 active:scale-95"
+                onClick={() => alert("Shipment sequence initiated! 🚀")}
+            >
+                Ship to Production
+            </button>
+        </div>
+    );
+};

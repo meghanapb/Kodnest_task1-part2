@@ -9,7 +9,9 @@ import {
   Resources,
   Profile,
   AnalysisResults,
-  AnalysisHistory
+  AnalysisHistory,
+  TestChecklist,
+  ShipPage
 } from './pages/DashboardPages';
 
 function App() {
@@ -28,6 +30,16 @@ function App() {
           <Route path="results" element={<AnalysisResults />} />
           <Route path="resources" element={<Resources />} />
           <Route path="profile" element={<Profile />} />
+          <Route path="07-test" element={<TestChecklist />} />
+          <Route path="08-ship" element={<ShipPage />} />
+        </Route>
+
+        {/* PRP Specific Routes */}
+        <Route path="/prp/07-test" element={<DashboardLayout />} >
+          <Route index element={<TestChecklist />} />
+        </Route>
+        <Route path="/prp/08-ship" element={<DashboardLayout />} >
+          <Route index element={<ShipPage />} />
         </Route>
 
         {/* Fallback */}
