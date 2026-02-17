@@ -6,7 +6,7 @@ import {
 import {
     Card, CardContent, CardDescription, CardHeader, CardTitle
 } from '../components/ui/Card';
-import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target } from 'lucide-react';
+import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target, Building2, Users, Info, Clock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { analyzeJD, saveToHistory, getHistory, getLatestAnalysis, updateAnalysis } from '../lib/analysis';
 
@@ -403,6 +403,37 @@ export const AnalysisResults = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
+                                <Building2 className="text-primary" />
+                                {analysis.intel?.name || "Company Profile"}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Industry</p>
+                                    <p className="text-sm font-semibold text-slate-700">{analysis.intel?.industry || "Technology"}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estimated Size</p>
+                                    <p className="text-sm font-semibold text-slate-700">{analysis.intel?.size || "N/A"}</p>
+                                </div>
+                            </div>
+                            <div className="pt-4 border-t border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Typical Hiring Focus</p>
+                                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 italic text-xs text-slate-600 leading-relaxed shadow-inner">
+                                    "{analysis.intel?.focus}"
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 pt-2 text-[10px] text-slate-400 font-medium">
+                                <Info size={12} />
+                                <span>Demo Mode: Company intel generated heuristically.</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
                                 <FileText className="text-primary" />
                                 Interactive Skill Map
                             </CardTitle>
@@ -443,6 +474,42 @@ export const AnalysisResults = () => {
 
                 {/* Plan & Checklist */}
                 <div className="lg:col-span-2 space-y-8">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <div className="space-y-1">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Clock className="text-primary" />
+                                    Dynamic Interview Mapping
+                                </CardTitle>
+                                <CardDescription>Estimated round flow based on company profile</CardDescription>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            <div className="relative space-y-8 before:absolute before:inset-0 before:ml-[1.125rem] before:h-full before:w-0.5 before:-translate-x-1/2 before:bg-slate-200">
+                                {analysis.roundMapping?.map((round, idx) => (
+                                    <div key={idx} className="relative flex items-start gap-6 animate-in slide-in-from-left-4 duration-300" style={{ animationDelay: `${idx * 150}ms` }}>
+                                        <div className="absolute left-0 mt-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-white border-2 border-primary text-primary shadow-sm z-10 transition-transform hover:scale-110">
+                                            <span className="text-xs font-bold">{idx + 1}</span>
+                                        </div>
+                                        <div className="ml-12 flex-1 space-y-2 pb-8 last:pb-0">
+                                            <div className="flex justify-between items-center">
+                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/20 decoration-2 underline-offset-4">{round.name}</h4>
+                                            </div>
+                                            <p className="text-sm text-slate-600 font-medium leading-relaxed">{round.description}</p>
+                                            <div className="bg-primary/5 p-3 rounded-xl border border-primary/10 flex items-start gap-3">
+                                                <HelpCircle size={14} className="text-primary mt-0.5 shrink-0" />
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-bold text-primary uppercase tracking-tighter">Why this round matters</p>
+                                                    <p className="text-xs text-slate-500 italic leading-tight">{round.why}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div className="space-y-1">

@@ -185,14 +185,76 @@ export const calculateReadiness = (company, role, jdText, categoryCount) => {
     return Math.min(score, 100);
 };
 
+const ENTERPRISE_LIST = ["Google", "Amazon", "Microsoft", "Meta", "Apple", "Netflix", "Infosys", "TCS", "Wipro", "Accenture", "IBM", "Oracle", "SAP", "Cisco"];
+
+export const getCompanyIntel = (company) => {
+    if (!company) return null;
+
+    const isEnterprise = ENTERPRISE_LIST.some(item => company.toLowerCase().includes(item.toLowerCase()));
+
+    return {
+        name: company,
+        industry: "Technology Services",
+        size: isEnterprise ? "Enterprise (2000+)" : "Startup (<200)",
+        isEnterprise,
+        focus: isEnterprise
+            ? "Structured DSA + Engineering fundamentals and scale-oriented problem solving."
+            : "Practical problem solving + tech stack depth and rapid feature delivery."
+    };
+};
+
+export const getRoundMapping = (intel, detectedSkills) => {
+    const rounds = [];
+    const skills = Object.values(detectedSkills).flat();
+    const hasDSA = skills.includes("DSA");
+
+    if (intel?.isEnterprise) {
+        rounds.push({
+            name: "Round 1: Online Assessment",
+            description: "Automated coding test focusing on DSA and basic aptitude.",
+            why: "To filter candidates based on core problem-solving efficiency."
+        });
+        rounds.push({
+            name: "Round 2: Technical Interview I",
+            description: `Focus on ${hasDSA ? "DSA (Linked Lists, Trees, DP)" : "Core CS fundamentals and coding logic"}.`,
+            why: "Verifies technical depth and understanding of optimizations."
+        });
+        rounds.push({
+            name: "Round 3: Technical Interview II",
+            description: "System Design basics or Project deep-dive with focus on scalability.",
+            why: "Assesses how you think about larger systems and trade-offs."
+        });
+        rounds.push({
+            name: "Round 4: HR / Behavioral",
+            description: "Culture fit, leadership principles, and career goals.",
+            why: "Ensures long-term alignment with company values and team culture."
+        });
+    } else {
+        rounds.push({
+            name: "Round 1: Practical Coding / Take-home",
+            description: `Hands-on task using ${skills.slice(0, 2).join(", ") || "the core stack"}.`,
+            why: "Ensures you can ship clean, functional code immediately."
+        });
+        rounds.push({
+            name: "Round 2: Technical Discussion",
+            description: "Discussion on previous projects and technical choices made.",
+            why: "Evaluates your decision-making and stack-specific depth."
+        });
+        rounds.push({
+            name: "Round 3: Culture Fit / Founder Round",
+            description: "Vision alignment and how you handle a fast-paced environment.",
+            why: "Startups need people who can adapt and own their work."
+        });
+    }
+    return rounds;
+};
+
 export const analyzeJD = (company, role, jdText) => {
     const { detected, categoryCount } = extractSkills(jdText);
     const readinessScore = calculateReadiness(company, role, jdText, categoryCount);
 
-    const extractedSkills = detected;
-    const checklist = generateChecklist(detected);
-    const plan = generatePlan(detected);
-    const questions = generateQuestions(detected);
+    const intel = getCompanyIntel(company);
+    const roundMapping = getRoundMapping(intel, detected);
 
     const result = {
         id: Date.now().toString(),
@@ -200,10 +262,12 @@ export const analyzeJD = (company, role, jdText) => {
         company,
         role,
         jdText,
-        extractedSkills,
-        plan,
-        checklist,
-        questions,
+        intel,
+        roundMapping,
+        extractedSkills: detected,
+        plan: generatePlan(detected),
+        checklist: generateChecklist(detected),
+        questions: generateQuestions(detected),
         readinessScore
     };
 
