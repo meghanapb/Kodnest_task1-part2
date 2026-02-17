@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root {
+  --primary: hsl(245, 58%, 51%);
+}
+
+@theme {
+  --color-primary: var(--primary);
+}
+
+body {
+  @apply antialiased text-slate-900 bg-slate-50;
+}
