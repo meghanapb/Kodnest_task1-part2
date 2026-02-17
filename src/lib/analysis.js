@@ -1,21 +1,18 @@
 export const SKILL_CATEGORIES = {
-    "Core CS": ["DSA", "OOP", "DBMS", "OS", "Networks"],
-    "Languages": ["Java", "Python", "JavaScript", "TypeScript", "C", "C++", "C#", "Go"],
-    "Web": ["React", "Next.js", "Node.js", "Express", "REST", "GraphQL"],
-    "Data": ["SQL", "MongoDB", "PostgreSQL", "MySQL", "Redis"],
-    "Cloud/DevOps": ["AWS", "Azure", "GCP", "Docker", "Kubernetes", "CI/CD", "Linux"],
-    "Testing": ["Selenium", "Cypress", "Playwright", "JUnit", "PyTest"]
+    "coreCS": ["DSA", "OOP", "DBMS", "OS", "Networks"],
+    "languages": ["Java", "Python", "JavaScript", "TypeScript", "C", "C++", "C#", "Go"],
+    "web": ["React", "Next.js", "Node.js", "Express", "REST", "GraphQL"],
+    "data": ["SQL", "MongoDB", "PostgreSQL", "MySQL", "Redis"],
+    "cloud": ["AWS", "Azure", "GCP", "Docker", "Kubernetes", "CI/CD", "Linux"],
+    "testing": ["Selenium", "Cypress", "Playwright", "JUnit", "PyTest"]
 };
 
 export const INTERVIEW_QUESTIONS = {
-    // Core CS
     "DSA": "How would you optimize search performance in a large sorted dataset?",
     "OOP": "Explain the four pillars of Object-Oriented Programming with practical examples.",
     "DBMS": "Explain ACID properties and their importance in database transactions.",
     "OS": "Describe how CPU scheduling works and the difference between preemptive and non-preemptive.",
     "Networks": "Explain the OSI model layers and the purpose of TCP/IP handshakes.",
-
-    // Languages
     "Java": "Explain the difference between interface and abstract class in Java.",
     "Python": "What are decorators in Python and how do they work?",
     "JavaScript": "Explain closures and how they are useful in JavaScript.",
@@ -23,36 +20,36 @@ export const INTERVIEW_QUESTIONS = {
     "C": "Explain pointers and memory management in C.",
     "C++": "What is the difference between virtual functions and pure virtual functions?",
     "Go": "Explain Goroutines and how they differ from threads.",
-
-    // Web
     "React": "Explain different state management options in React and when to use them.",
     "Next.js": "Describe the difference between Server-Side Rendering (SSR) and Incremental Static Regeneration (ISR).",
     "Node.js": "Explain the event loop mechanism and how it handles asynchronous operations.",
     "Express": "How does middleware work in Express, and can you give an example of one?",
     "REST": "Define the key constraints of RESTful architecture.",
     "GraphQL": "Compare GraphQL with REST in terms of over-fetching and under-fetching.",
-
-    // Data
     "SQL": "Explain indexing and when it helps in database optimization.",
     "MongoDB": "What are the benefits of a document-based NoSQL database over a relational one?",
     "PostgreSQL": "What are the key features that make PostgreSQL a powerful open-source database?",
     "Redis": "Explain common use cases for Redis and its data persistence options.",
-
-    // Cloud/DevOps
     "AWS": "What are the common core services in AWS (EC2, S3, RDS) and their purposes?",
     "Docker": "What is the difference between an image and a container in Docker?",
     "Kubernetes": "What is a Pod in Kubernetes, and how does it relate to containers?",
     "CI/CD": "Explain the benefits of a CI/CD pipeline in a modern development workflow.",
     "Linux": "Describe the Linux file system hierarchy and basic permission model.",
-
-    // Testing
     "Selenium": "How do you handle dynamic elements and wait times in Selenium?",
     "Cypress": "What makes Cypress different from other automated testing tools?",
     "JUnit": "Explain the lifecycle of a JUnit test case."
 };
 
 export const extractSkills = (jdText) => {
-    const detected = {};
+    const detected = {
+        coreCS: [],
+        languages: [],
+        web: [],
+        data: [],
+        cloud: [],
+        testing: [],
+        other: []
+    };
     const lowerText = jdText.toLowerCase();
     let totalDetected = 0;
 
@@ -67,87 +64,85 @@ export const extractSkills = (jdText) => {
         }
     });
 
+    // Handle no skills detected
+    if (totalDetected === 0) {
+        detected.other = ["Communication", "Problem solving", "Basic coding", "Projects"];
+    }
+
     return { detected, categoryCount: totalDetected };
 };
 
 export const generateChecklist = (detected) => {
     const allSkills = Object.values(detected).flat();
     const hasAlgo = allSkills.includes("DSA");
-    const hasWeb = detected["Web"]?.length > 0;
-    const hasCloud = detected["Cloud/DevOps"]?.length > 0;
+    const hasWeb = detected.web?.length > 0;
+    const hasCloud = detected.cloud?.length > 0;
 
     return [
         {
-            round: "Round 1: Aptitude / Basics",
+            roundTitle: "Round 1: Aptitude / Basics",
             items: [
-                "Quantitative Aptitude (Ratio, Time & Work, Profit/Loss)",
-                "Logical Reasoning (Sequences, Puzzles, Syllogisms)",
-                "Verbal Ability (Comprehension, Grammar, Flow)",
+                "Quantitative Aptitude (Ratio, Time & Work)",
+                "Logical Reasoning (Sequences, Puzzles)",
+                "Verbal Ability (Comprehension)",
                 "Basic Programming Flowcharts & Logic",
-                "Speed & Accuracy timed practice rounds",
-                "Company values, history, and mission alignment",
-                "Current industry trends relevant to the role"
+                "Company values and mission alignment"
             ]
         },
         {
-            round: "Round 2: DSA + Core CS",
+            roundTitle: "Round 2: DSA + Core CS",
             items: [
-                "Complexity Analysis (Time and Space Big-O)",
-                hasAlgo ? "Advanced Algorithms (Graph, Tree Traversals, DP Basics)" : "Core Algorithms (Search, Sort, Hash Maps)",
-                "Memory Management (Stack vs Heap, Garbage Collection)",
-                "Multi-threading, Processes, and Deadlocks (OS)",
-                "Database Normalization and Indexing strategies (DBMS)",
-                "Networking basics (HTTP/HTTPS, DNS, APIs)",
-                "Object-Oriented Design patterns (Singleton, Factory)"
+                "Complexity Analysis (Time and Space)",
+                hasAlgo ? "Advanced Algorithms (Graph, Tree Traversals)" : "Core Algorithms (Search, Sort)",
+                "Memory Management (Stack vs Heap)",
+                "OS: Processes and Deadlocks",
+                "DBMS: Normalization and Indexing"
             ]
         },
         {
-            round: "Round 3: Tech Interview (Projects + Stack)",
+            roundTitle: "Round 3: Tech Interview (Projects + Stack)",
             items: [
-                "Project Architecture & Technology Choice Justification",
-                `Implementation depth in: ${allSkills.slice(0, 4).join(", ") || "General Stack"}`,
-                hasWeb ? "State Management & Frontend performance optimization" : "System reliability & Exception handling",
-                hasCloud ? "Deployment workflows & Infrastructure as Code basics" : "API Integration & Documentation best practices",
-                "Debugging scenarios: How to approach a runtime crash",
-                "Security best practices (Authentication, Input validation)",
-                "Version control (Git) workflow and collaboration"
+                "Project Architecture Justification",
+                `Implementation depth: ${allSkills.slice(0, 3).join(", ") || "General Stack"}`,
+                hasWeb ? "Frontend performance optimization" : "System reliability",
+                hasCloud ? "Deployment workflows" : "API Integration basics",
+                "Debugging scenarios and Security basics"
             ]
         },
         {
-            round: "Round 4: Managerial / HR",
+            roundTitle: "Round 4: Managerial / HR",
             items: [
-                "Detailed walk-through of a past conflict resolution",
-                "Experience working in an Agile/Scrum environment",
-                "How you handle tight deadlines and shifting priorities",
-                "Continuous learning: Latest tech you explored yourself",
-                "Alignment with role expectations and growth path",
-                "Behavioral questions (Tell me about a time when...)",
-                "Expectations from the team and leadership style preference",
-                "Long-term career goals and stability assessment"
+                "Conflict resolution and stability",
+                "Working in an Agile/Scrum environment",
+                "Handling tight deadlines",
+                "Behavioral questions (STAR method)"
             ]
         }
     ];
 };
 
-export const generatePlan = (detected) => {
+export const generatePlan7Days = (detected) => {
     const skills = Object.values(detected).flat();
     const isFrontend = skills.some(s => ["React", "Next.js", "JavaScript"].includes(s));
     const isBackend = skills.some(s => ["Node.js", "Express", "SQL", "MongoDB"].includes(s));
-    const isCloud = skills.some(s => ["AWS", "Docker", "Kubernetes"].includes(s));
     const hasDSA = skills.includes("DSA");
 
-    return {
-        "Day 1–2": "Basics + Core CS: Master OOP pillars, OS concepts (Threads/Locks), and Networking fundamentals.",
-        "Day 3–4": hasDSA ? "DSA + Coding Practice: Solve 10 medium-level problems on Graphs, Trees, and DP." : "DSA + Coding Practice: focus on Arrays, Strings, HashMaps, and Basic Recursion.",
-        "Day 5": `Project + Resume Alignment: Highlight practical application of ${skills.slice(0, 3).join(", ") || "your stack"} in your projects.`,
-        "Day 6": "Mock Interview Questions: " + (
-            isFrontend ? "Practice React lifecycle, Hook optimization, and CSS layout challenges." :
-                isBackend ? "Practice API design, Database schema optimization, and Auth flows." :
-                    isCloud ? "Practice Containerization concepts and CI/CD workflow explanations." :
-                        "Practice general technical puzzle solving and logic-based questions."
-        ),
-        "Day 7": "Revision + Weak Areas: Review company-specific interview trends and do a final sweep of core definitions."
-    };
+    const plan = [];
+    plan.push({ day: "Day 1-2", focus: "Core Fundamentals", tasks: ["Master OOP pillars", "OS concepts (Threads/Locks)", "Networking (HTTP/API basics)"] });
+    plan.push({ day: "Day 3-4", focus: "DSA & Problem Solving", tasks: [hasDSA ? "Solve 10 Medium Graph/Tree problems" : "Practice Arrays, Strings, HashMaps"] });
+    plan.push({ day: "Day 5", focus: "Project Review", tasks: [`Deep dive into ${skills.slice(0, 2).join(", ") || "projects"} architecture`] });
+    plan.push({
+        day: "Day 6",
+        focus: "Advanced Topics",
+        tasks: [
+            isFrontend ? "React hooks and CSS layouts" :
+                isBackend ? "DB optimization and Auth flows" :
+                    "System design patterns and Logic puzzles"
+        ]
+    });
+    plan.push({ day: "Day 7", focus: "Final Mock & Revision", tasks: ["Review weak areas", "Practice HR responses", "Final technical sweep"] });
+
+    return plan;
 };
 
 export const generateQuestions = (detected) => {
@@ -156,21 +151,20 @@ export const generateQuestions = (detected) => {
 
     detectedSkills.forEach(skill => {
         if (INTERVIEW_QUESTIONS[skill]) {
-            questions.push({ skill, question: INTERVIEW_QUESTIONS[skill] });
+            questions.push(`[${skill}] ${INTERVIEW_QUESTIONS[skill]}`);
         }
     });
 
     const generalQuestions = [
-        { skill: "Behavioral", question: "Describe a project where you had to learn a new technology quickly." },
-        { skill: "Problem Solving", question: "How do you approach a bug that you cannot reproduce locally?" },
-        { skill: "Collaboration", question: "Tell me about a time you disagreed with a team member's technical choice." },
-        { skill: "Culture", question: "Why do you want to work at this specific company and what do you bring to the table?" },
-        { skill: "Design", question: "How would you design a rate-limiter for an API?" }
+        "Describe a project where you learned a new tech quickly.",
+        "How do you approach a bug that isn't reproducible locally?",
+        "Tell me about a time you disagreed with a technical choice.",
+        "How would you design a simple rate-limiter?",
+        "Explain your approach to optimizing slow database queries."
     ];
 
     while (questions.length < 10) {
-        const nextQ = generalQuestions[questions.length % generalQuestions.length];
-        questions.push(nextQ);
+        questions.push(generalQuestions[questions.length % generalQuestions.length]);
     }
 
     return questions.slice(0, 10);
@@ -189,7 +183,6 @@ const ENTERPRISE_LIST = ["Google", "Amazon", "Microsoft", "Meta", "Apple", "Netf
 
 export const getCompanyIntel = (company) => {
     if (!company) return null;
-
     const isEnterprise = ENTERPRISE_LIST.some(item => company.toLowerCase().includes(item.toLowerCase()));
 
     return {
@@ -198,8 +191,8 @@ export const getCompanyIntel = (company) => {
         size: isEnterprise ? "Enterprise (2000+)" : "Startup (<200)",
         isEnterprise,
         focus: isEnterprise
-            ? "Structured DSA + Engineering fundamentals and scale-oriented problem solving."
-            : "Practical problem solving + tech stack depth and rapid feature delivery."
+            ? "Structured DSA + Engineering fundamentals."
+            : "Practical problem solving + tech stack depth."
     };
 };
 
@@ -210,40 +203,40 @@ export const getRoundMapping = (intel, detectedSkills) => {
 
     if (intel?.isEnterprise) {
         rounds.push({
-            name: "Round 1: Online Assessment",
-            description: "Automated coding test focusing on DSA and basic aptitude.",
-            why: "To filter candidates based on core problem-solving efficiency."
+            roundTitle: "Round 1: Online Assessment",
+            focusAreas: ["DSA", "Aptitude"],
+            whyItMatters: "To filter candidates based on core problem-solving efficiency."
         });
         rounds.push({
-            name: "Round 2: Technical Interview I",
-            description: `Focus on ${hasDSA ? "DSA (Linked Lists, Trees, DP)" : "Core CS fundamentals and coding logic"}.`,
-            why: "Verifies technical depth and understanding of optimizations."
+            roundTitle: "Round 2: Technical Interview I",
+            focusAreas: [hasDSA ? "Algorithms" : "Logical Thinking"],
+            whyItMatters: "Verifies technical depth and understanding of optimizations."
         });
         rounds.push({
-            name: "Round 3: Technical Interview II",
-            description: "System Design basics or Project deep-dive with focus on scalability.",
-            why: "Assesses how you think about larger systems and trade-offs."
+            roundTitle: "Round 3: Tech + Projects",
+            focusAreas: ["System Design", "Scalability"],
+            whyItMatters: "Assesses how you think about larger systems."
         });
         rounds.push({
-            name: "Round 4: HR / Behavioral",
-            description: "Culture fit, leadership principles, and career goals.",
-            why: "Ensures long-term alignment with company values and team culture."
+            roundTitle: "Round 4: HR",
+            focusAreas: ["Culture", "Leadership"],
+            whyItMatters: "Ensures alignment with company values."
         });
     } else {
         rounds.push({
-            name: "Round 1: Practical Coding / Take-home",
-            description: `Hands-on task using ${skills.slice(0, 2).join(", ") || "the core stack"}.`,
-            why: "Ensures you can ship clean, functional code immediately."
+            roundTitle: "Round 1: Practical Coding",
+            focusAreas: [skills[0] || "Stack Depth"],
+            whyItMatters: "Ensures you can ship clean, functional code immediately."
         });
         rounds.push({
-            name: "Round 2: Technical Discussion",
-            description: "Discussion on previous projects and technical choices made.",
-            why: "Evaluates your decision-making and stack-specific depth."
+            roundTitle: "Round 2: System Discussion",
+            focusAreas: ["Architecture", "Trade-offs"],
+            whyItMatters: "Evaluates your decision-making processes."
         });
         rounds.push({
-            name: "Round 3: Culture Fit / Founder Round",
-            description: "Vision alignment and how you handle a fast-paced environment.",
-            why: "Startups need people who can adapt and own their work."
+            roundTitle: "Round 3: Culture Fit",
+            focusAreas: ["Vision", "Fast-pace"],
+            whyItMatters: "Startups need people who can adapt quickly."
         });
     }
     return rounds;
@@ -251,29 +244,29 @@ export const getRoundMapping = (intel, detectedSkills) => {
 
 export const analyzeJD = (company, role, jdText) => {
     const { detected, categoryCount } = extractSkills(jdText);
-    const readinessScore = calculateReadiness(company, role, jdText, categoryCount);
-
     const intel = getCompanyIntel(company);
     const roundMapping = getRoundMapping(intel, detected);
+    const baseScore = calculateReadiness(company, role, jdText, categoryCount);
 
     const result = {
         id: Date.now().toString(),
         createdAt: new Date().toISOString(),
-        company,
-        role,
+        updatedAt: new Date().toISOString(),
+        company: company || "",
+        role: role || "",
         jdText,
         intel,
-        roundMapping,
         extractedSkills: detected,
-        plan: generatePlan(detected),
+        roundMapping,
         checklist: generateChecklist(detected),
+        plan7Days: generatePlan7Days(detected),
         questions: generateQuestions(detected),
-        readinessScore
+        baseScore,
+        skillConfidenceMap: {},
+        finalScore: baseScore
     };
 
-    // Save as latest analysis for persistence across refresh
     localStorage.setItem('latest_analysis', JSON.stringify(result));
-
     return result;
 };
 
@@ -283,24 +276,37 @@ export const saveToHistory = (analysis) => {
 };
 
 export const getHistory = () => {
-    return JSON.parse(localStorage.getItem('jd_history') || '[]');
+    try {
+        const raw = localStorage.getItem('jd_history');
+        if (!raw) return [];
+        const history = JSON.parse(raw);
+        // Filter out corrupted entries (minimal validation)
+        return history.filter(item => item && item.id && item.jdText);
+    } catch (e) {
+        console.error("Failed to parse history", e);
+        return [];
+    }
 };
 
 export const getLatestAnalysis = () => {
-    return JSON.parse(localStorage.getItem('latest_analysis') || 'null');
+    try {
+        const raw = localStorage.getItem('latest_analysis');
+        if (!raw) return null;
+        return JSON.parse(raw);
+    } catch (e) {
+        return null;
+    }
 };
 
 export const updateAnalysis = (id, updates) => {
-    // Update history
-    const history = JSON.parse(localStorage.getItem('jd_history') || '[]');
+    const history = getHistory();
     const updatedHistory = history.map(item =>
-        item.id === id ? { ...item, ...updates } : item
+        item.id === id ? { ...item, ...updates, updatedAt: new Date().toISOString() } : item
     );
     localStorage.setItem('jd_history', JSON.stringify(updatedHistory));
 
-    // Update latest_analysis if matches
     const latest = getLatestAnalysis();
     if (latest && latest.id === id) {
-        localStorage.setItem('latest_analysis', JSON.stringify({ ...latest, ...updates }));
+        localStorage.setItem('latest_analysis', JSON.stringify({ ...latest, ...updates, updatedAt: new Date().toISOString() }));
     }
 };

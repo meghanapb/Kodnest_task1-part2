@@ -231,7 +231,6 @@ export const Assessments = () => {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Company Name</label>
                                 <input
-                                    required
                                     type="text"
                                     placeholder="e.g. Google"
                                     className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
@@ -242,7 +241,6 @@ export const Assessments = () => {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-slate-700">Role / Designation</label>
                                 <input
-                                    required
                                     type="text"
                                     placeholder="e.g. Software Engineer"
                                     className="w-full p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
@@ -262,6 +260,12 @@ export const Assessments = () => {
                                 onChange={(e) => setFormData({ ...formData, jdText: e.target.value })}
                             />
                             <p className="text-xs text-slate-400">{formData.jdText.length} characters (Pro tip: {'>'}800 chars adds 10 points to readiness score)</p>
+                            {formData.jdText.length > 0 && formData.jdText.length < 200 && (
+                                <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2 text-amber-700 text-xs">
+                                    <Info size={14} className="mt-0.5" />
+                                    <span>This JD is too short to analyze deeply. Paste full JD for better output.</span>
+                                </div>
+                            )}
                         </div>
                         <button
                             type="submit"
@@ -294,13 +298,13 @@ export const AnalysisResults = () => {
             }
         } else {
             setSkillConfidence(analysis.skillConfidenceMap || {});
-            setCurrentScore(analysis.currentScore || analysis.readinessScore);
+            setCurrentScore(analysis.finalScore || analysis.baseScore);
         }
     }, [analysis, navigate]);
 
     useEffect(() => {
         if (analysis) {
-            const baseScore = analysis.readinessScore;
+            const baseScore = analysis.baseScore;
             let adjustment = 0;
             const allSkills = Object.values(analysis.extractedSkills).flat();
 
@@ -316,7 +320,7 @@ export const AnalysisResults = () => {
             const timeoutId = setTimeout(() => {
                 updateAnalysis(analysis.id, {
                     skillConfidenceMap: skillConfidence,
-                    currentScore: newScore
+                    finalScore: newScore
                 });
             }, 500);
             return () => clearTimeout(timeoutId);
@@ -339,9 +343,9 @@ export const AnalysisResults = () => {
         const sections = [
             `Analysis for ${analysis.role} at ${analysis.company}`,
             `Readiness Score: ${currentScore}%`,
-            `\n7-DAY PREPARATION PLAN\n${Object.entries(analysis.plan).map(([day, task]) => `${day}: ${task}`).join('\n')}`,
-            `\nROUND-WISE CHECKLIST\n${analysis.checklist.map(r => `${r.round}:\n${r.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`,
-            `\nTOP 10 INTERVIEW QUESTIONS\n${analysis.questions.map((q, i) => `${i + 1}. [${q.skill}] ${q.question}`).join('\n')}`
+            `\n7-DAY PREPARATION PLAN\n${analysis.plan7Days.map(p => `${p.day} (${p.focus}):\n${p.tasks.map(t => `- ${t}`).join('\n')}`).join('\n')}`,
+            `\nROUND-WISE CHECKLIST\n${analysis.checklist.map(r => `${r.roundTitle}:\n${r.items.map(i => `- ${i}`).join('\n')}`).join('\n\n')}`,
+            `\nTOP 10 INTERVIEW QUESTIONS\n${analysis.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`
         ];
         const blob = new Blob([sections.join('\n')], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
@@ -393,9 +397,9 @@ export const AnalysisResults = () => {
                         </CardHeader>
                         <CircularProgress value={currentScore} />
                         <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-400">
-                            <span>Base: {analysis.readinessScore}%</span>
-                            <span className={cn(currentScore >= analysis.readinessScore ? "text-green-500" : "text-amber-500")}>
-                                {currentScore >= analysis.readinessScore ? "+" : ""}{currentScore - analysis.readinessScore}%
+                            <span>Base: {analysis.baseScore}%</span>
+                            <span className={cn(currentScore >= analysis.baseScore ? "text-green-500" : "text-amber-500")}>
+                                {currentScore >= analysis.baseScore ? "+" : ""}{currentScore - analysis.baseScore}%
                             </span>
                         </div>
                     </Card>
@@ -493,14 +497,18 @@ export const AnalysisResults = () => {
                                         </div>
                                         <div className="ml-12 flex-1 space-y-2 pb-8 last:pb-0">
                                             <div className="flex justify-between items-center">
-                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/20 decoration-2 underline-offset-4">{round.name}</h4>
+                                                <h4 className="font-bold text-slate-900 group-hover:text-primary transition-colors underline decoration-primary/20 decoration-2 underline-offset-4">{round.roundTitle}</h4>
                                             </div>
-                                            <p className="text-sm text-slate-600 font-medium leading-relaxed">{round.description}</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {round.focusAreas.map(f => (
+                                                    <span key={f} className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md uppercase tracking-tighter">{f}</span>
+                                                ))}
+                                            </div>
                                             <div className="bg-primary/5 p-3 rounded-xl border border-primary/10 flex items-start gap-3">
                                                 <HelpCircle size={14} className="text-primary mt-0.5 shrink-0" />
                                                 <div className="space-y-1">
                                                     <p className="text-[10px] font-bold text-primary uppercase tracking-tighter">Why this round matters</p>
-                                                    <p className="text-xs text-slate-500 italic leading-tight">{round.why}</p>
+                                                    <p className="text-xs text-slate-500 italic leading-tight">{round.whyItMatters}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -519,17 +527,22 @@ export const AnalysisResults = () => {
                                 </CardTitle>
                             </div>
                             <button
-                                onClick={() => copyToClipboard(Object.entries(analysis.plan).map(([day, task]) => `${day}: ${task}`).join('\n'), "Plan")}
+                                onClick={() => copyToClipboard(analysis.plan7Days.map(p => `${p.day} (${p.focus}): ${p.tasks.join(', ')}`).join('\n'), "Plan")}
                                 className="p-2 text-slate-400 hover:text-primary transition-colors"
                             >
                                 <Copy size={18} />
                             </button>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {Object.entries(analysis.plan).map(([day, task]) => (
-                                <div key={day} className="flex gap-4 p-4 rounded-xl border border-slate-50 hover:bg-slate-50/50 transition-colors">
-                                    <div className="font-bold text-primary min-w-[80px]">{day}</div>
-                                    <div className="text-slate-600">{task}</div>
+                            {analysis.plan7Days.map((p) => (
+                                <div key={p.day} className="flex gap-4 p-4 rounded-xl border border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                    <div className="min-w-[100px]">
+                                        <div className="font-bold text-primary">{p.day}</div>
+                                        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-tighter">{p.focus}</div>
+                                    </div>
+                                    <ul className="space-y-1 list-disc list-inside text-slate-600 text-sm">
+                                        {p.tasks.map((task, i) => <li key={i}>{task}</li>)}
+                                    </ul>
                                 </div>
                             ))}
                         </CardContent>
@@ -544,7 +557,7 @@ export const AnalysisResults = () => {
                                 </CardTitle>
                             </div>
                             <button
-                                onClick={() => copyToClipboard(analysis.checklist.map(r => `${r.round}:\n${r.items.map(i => `- ${i}`).join('\n')}`).join('\n\n'), "Checklist")}
+                                onClick={() => copyToClipboard(analysis.checklist.map(r => `${r.roundTitle}:\n${r.items.map(i => `- ${i}`).join('\n')}`).join('\n\n'), "Checklist")}
                                 className="p-2 text-slate-400 hover:text-primary transition-colors"
                             >
                                 <Copy size={18} />
@@ -552,8 +565,8 @@ export const AnalysisResults = () => {
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {analysis.checklist.map((round) => (
-                                <div key={round.round} className="space-y-3 p-4 rounded-xl bg-slate-50/50 border border-slate-100">
-                                    <h4 className="font-bold text-slate-900 border-b border-slate-200 pb-2">{round.round}</h4>
+                                <div key={round.roundTitle} className="space-y-3 p-4 rounded-xl bg-slate-50/50 border border-slate-100">
+                                    <h4 className="font-bold text-slate-900 border-b border-slate-200 pb-2">{round.roundTitle}</h4>
                                     <ul className="space-y-2">
                                         {round.items.map((item, i) => (
                                             <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
@@ -576,7 +589,7 @@ export const AnalysisResults = () => {
                                 </CardTitle>
                             </div>
                             <button
-                                onClick={() => copyToClipboard(analysis.questions.map((q, i) => `${i + 1}. [${q.skill}] ${q.question}`).join('\n'), "Questions")}
+                                onClick={() => copyToClipboard(analysis.questions.map((q, i) => `${i + 1}. ${q}`).join('\n'), "Questions")}
                                 className="p-2 text-slate-400 hover:text-primary transition-colors"
                             >
                                 <Copy size={18} />
@@ -586,8 +599,7 @@ export const AnalysisResults = () => {
                             <div className="grid grid-cols-1 gap-4">
                                 {analysis.questions.map((q, i) => (
                                     <div key={i} className="group p-4 rounded-xl border border-slate-100 hover:border-primary/20 hover:bg-white hover:shadow-md transition-all">
-                                        <p className="text-xs text-primary font-bold mb-1 uppercase tracking-tighter">{q.skill}</p>
-                                        <p className="text-slate-800 font-medium group-hover:text-primary transition-colors">{q.question}</p>
+                                        <p className="text-slate-800 font-medium group-hover:text-primary transition-colors">{q}</p>
                                     </div>
                                 ))}
                             </div>
@@ -664,7 +676,7 @@ export const AnalysisHistory = () => {
                             <div className="flex flex-col md:flex-row items-center p-6 gap-6">
                                 <div className="flex-shrink-0">
                                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                                        {item.readinessScore}%
+                                        {item.finalScore || item.baseScore}%
                                     </div>
                                 </div>
                                 <div className="flex-grow text-center md:text-left">
