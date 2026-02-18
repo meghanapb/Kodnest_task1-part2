@@ -11,7 +11,8 @@ import {
   AnalysisResults,
   AnalysisHistory,
   TestChecklist,
-  ShipPage
+  ShipPage,
+  ProofPage
 } from './pages/DashboardPages';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="07-test" element={<TestChecklist />} />
           <Route path="08-ship" element={<ShipPage />} />
+          <Route path="proof" element={<ProofPage />} />
         </Route>
 
         {/* PRP Specific Routes */}
@@ -40,6 +42,9 @@ function App() {
         </Route>
         <Route path="/prp/08-ship" element={<DashboardLayout />} >
           <Route index element={<ShipPage />} />
+        </Route>
+        <Route path="/prp/proof" element={<DashboardLayout />} >
+          <Route index element={<ProofPage />} />
         </Route>
 
         {/* Fallback */}

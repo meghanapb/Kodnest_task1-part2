@@ -6,7 +6,7 @@ import {
 import {
     Card, CardContent, CardDescription, CardHeader, CardTitle
 } from '../components/ui/Card';
-import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target, Building2, Users, Info, Clock, ShieldCheck, Lock, Unlock, RotateCcw } from 'lucide-react';
+import { Play, Calendar, CheckCircle2, History as HistoryIcon, Search, PlusCircle, FileText, CalendarDays, ListChecks, HelpCircle, CheckCircle, ArrowRight, Copy, Download, Lightbulb, Target, Building2, Users, Info, Clock, ShieldCheck, Lock, Unlock, RotateCcw, Link, Github, ExternalLink, PackageCheck, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { analyzeJD, saveToHistory, getHistory, getLatestAnalysis, updateAnalysis } from '../lib/analysis';
 
@@ -864,12 +864,24 @@ export const ShipPage = () => {
     const [isLocked, setIsLocked] = useState(true);
 
     useEffect(() => {
-        const saved = localStorage.getItem('prp_test_checklist');
-        if (saved) {
-            const tests = JSON.parse(saved);
-            if (tests.filter(Boolean).length === 10) {
-                setIsLocked(false);
-            }
+        const savedChecklist = localStorage.getItem('prp_test_checklist');
+        const savedLinks = localStorage.getItem('prp_final_submission');
+
+        let testsOk = false;
+        let linksOk = false;
+
+        if (savedChecklist) {
+            const tests = JSON.parse(savedChecklist);
+            testsOk = tests.filter(Boolean).length === 10;
+        }
+
+        if (savedLinks) {
+            const links = JSON.parse(savedLinks);
+            linksOk = links.lovable && links.github && links.deployed;
+        }
+
+        if (testsOk && linksOk) {
+            setIsLocked(false);
         }
     }, []);
 
@@ -896,31 +908,283 @@ export const ShipPage = () => {
 
     return (
         <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-8 text-center animate-in zoom-in-95 duration-500">
-            <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-green-50 animate-bounce">
-                <ShieldCheck size={48} />
-            </div>
-            <h1 className="text-4xl font-extrabold text-slate-900 mb-2">Ready for Shipment</h1>
-            <p className="text-slate-600 max-w-md mb-8">
-                All quality gates have been cleared. Platform is stable, verified, and follows the premium design standards.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg mb-8">
-                <div className="p-4 bg-white rounded-xl border border-slate-100 text-left">
-                    <p className="text-xs font-bold text-slate-400 uppercase mb-1">Status</p>
-                    <p className="font-bold text-green-600 flex items-center gap-2">
-                        <CheckCircle2 size={16} /> Verified
+            {isLocked ? (
+                <>
+                    <div className="w-24 h-24 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-slate-50">
+                        <Lock size={48} />
+                    </div>
+                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Shipment Locked</h1>
+                    <p className="text-slate-500 max-w-md mb-8">
+                        The final shipment gate is locked. You must complete the Test Checklist and provide all Proof links before proceeding.
                     </p>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={() => navigate('/dashboard/07-test')}
+                            className="bg-white border border-slate-200 text-slate-600 px-6 py-2.5 rounded-xl font-semibold hover:bg-slate-50 transition-all"
+                        >
+                            Return to Checklist
+                        </button>
+                        <button
+                            onClick={() => navigate('/dashboard/proof')}
+                            className="bg-primary text-white px-6 py-2.5 rounded-xl font-semibold hover:shadow-lg transition-all"
+                        >
+                            View Proof Details
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-green-50 animate-bounce">
+                        <ShieldCheck size={48} />
+                    </div>
+                    <div className="mb-4">
+                        <span className="bg-green-100 text-green-700 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-green-200">
+                            Status: Shipped
+                        </span>
+                    </div>
+                    <h1 className="text-4xl font-extrabold text-slate-900 mb-4">Ready for Production</h1>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm max-w-lg mb-8 text-left space-y-4">
+                        <p className="text-slate-600 leading-relaxed font-medium">
+                            "You built a real product.<br />
+                            Not a tutorial. Not a clone.<br />
+                            A structured tool that solves a real problem."
+                        </p>
+                        <p className="text-primary font-bold border-t border-slate-50 pt-4">This is your proof of work.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg mb-8 text-left">
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Gate Check</p>
+                            <p className="text-sm font-bold text-slate-700">100% Verified</p>
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Package</p>
+                            <p className="text-sm font-bold text-slate-700">v1.2.5-final</p>
+                        </div>
+                    </div>
+                    <button
+                        className="bg-green-600 text-white px-12 py-4 rounded-2xl font-bold text-xl hover:bg-green-700 shadow-2xl shadow-green-200 transition-all transform hover:scale-105 active:scale-95"
+                        onClick={() => alert("Deployment successful! 🚀")}
+                    >
+                        Deploy to Production
+                    </button>
+                </>
+            )}
+        </div>
+    );
+};
+
+export const ProofPage = () => {
+    const navigate = useNavigate();
+    const [links, setLinks] = useState(() => {
+        const saved = localStorage.getItem('prp_final_submission');
+        return saved ? JSON.parse(saved) : { lovable: '', github: '', deployed: '' };
+    });
+    const [errors, setErrors] = useState({});
+
+    const steps = [
+        { id: 1, name: "Project Initialization", status: "Completed" },
+        { id: 2, name: "Landing Page", status: "Completed" },
+        { id: 3, name: "Dashboard UI", status: "Completed" },
+        { id: 4, name: "Analysis Logic", status: "Completed" },
+        { id: 5, name: "Interactive Features", status: "Completed" },
+        { id: 6, name: "Company Intel", status: "Completed" },
+        { id: 7, name: "Hardening", status: "Completed" },
+        {
+            id: 8,
+            name: "Test Checklist",
+            status: (() => {
+                const saved = localStorage.getItem('prp_test_checklist');
+                if (!saved) return "Pending";
+                const tests = JSON.parse(saved);
+                return tests.filter(Boolean).length === 10 ? "Completed" : "Pending";
+            })()
+        }
+    ];
+
+    const validateUrl = (url) => {
+        try {
+            const parsed = new URL(url);
+            return ['http:', 'https:'].includes(parsed.protocol);
+        } catch {
+            return false;
+        }
+    };
+
+    const handleLinkChange = (key, value) => {
+        const newLinks = { ...links, [key]: value };
+        setLinks(newLinks);
+        localStorage.setItem('prp_final_submission', JSON.stringify(newLinks));
+
+        if (value && !validateUrl(value)) {
+            setErrors(prev => ({ ...prev, [key]: 'Invalid URL' }));
+        } else {
+            setErrors(prev => {
+                const newErr = { ...prev };
+                delete newErr[key];
+                return newErr;
+            });
+        }
+    };
+
+    const copyFinalSubmission = () => {
+        const text = `------------------------------------------
+Placement Readiness Platform — Final Submission
+
+Lovable Project: ${links.lovable || 'N/A'}
+GitHub Repository: ${links.github || 'N/A'}
+Live Deployment: ${links.deployed || 'N/A'}
+
+Core Capabilities:
+- JD skill extraction (deterministic)
+- Round mapping engine
+- 7-day prep plan
+- Interactive readiness scoring
+- History persistence
+------------------------------------------`;
+        navigator.clipboard.writeText(text);
+        alert("Formatted submission copied to clipboard!");
+    };
+
+    const isAllLinksProvided = links.lovable && links.github && links.deployed && Object.keys(errors).length === 0;
+
+    return (
+        <div className="p-8 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Proof of Work</h1>
+                    <p className="text-slate-500">Finalize your artifact links and verify completion.</p>
                 </div>
-                <div className="p-4 bg-white rounded-xl border border-slate-100 text-left">
-                    <p className="text-xs font-bold text-slate-400 uppercase mb-1">Version</p>
-                    <p className="font-bold text-slate-800">1.2.0-stable</p>
+                <button
+                    onClick={copyFinalSubmission}
+                    disabled={!isAllLinksProvided}
+                    className={cn(
+                        "flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all",
+                        isAllLinksProvided
+                            ? "bg-primary text-white hover:shadow-lg"
+                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                    )}
+                >
+                    <Copy size={20} />
+                    Copy Final Submission
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Step Completion */}
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <PackageCheck className="text-primary" />
+                                Completion Overview
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {steps.map(step => (
+                                <div key={step.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100 text-sm">
+                                    <span className="text-slate-600 font-medium">{step.id}. {step.name}</span>
+                                    <span className={cn(
+                                        "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                                        step.status === "Completed" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                                    )}>
+                                        {step.status}
+                                    </span>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Artifact Links */}
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Link className="text-primary" />
+                                Artifact Links
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <ExternalLink size={14} /> Lovable Project Link
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="https://lovable.dev/projects/..."
+                                    className={cn(
+                                        "w-full p-3 rounded-lg border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm",
+                                        errors.lovable ? "border-red-300 bg-red-50" : "border-slate-200"
+                                    )}
+                                    value={links.lovable}
+                                    onChange={(e) => handleLinkChange('lovable', e.target.value)}
+                                />
+                                {errors.lovable && <p className="text-[10px] text-red-500 font-bold">{errors.lovable}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Github size={14} /> GitHub Repository
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="https://github.com/..."
+                                    className={cn(
+                                        "w-full p-3 rounded-lg border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm",
+                                        errors.github ? "border-red-300 bg-red-50" : "border-slate-200"
+                                    )}
+                                    value={links.github}
+                                    onChange={(e) => handleLinkChange('github', e.target.value)}
+                                />
+                                {errors.github && <p className="text-[10px] text-red-500 font-bold">{errors.github}</p>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Link size={14} /> Deployed URL
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="https://..."
+                                    className={cn(
+                                        "w-full p-3 rounded-lg border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm",
+                                        errors.deployed ? "border-red-300 bg-red-50" : "border-slate-200"
+                                    )}
+                                    value={links.deployed}
+                                    onChange={(e) => handleLinkChange('deployed', e.target.value)}
+                                />
+                                {errors.deployed && <p className="text-[10px] text-red-500 font-bold">{errors.deployed}</p>}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Shipped Status Guard Info */}
+                    <div className={cn(
+                        "p-4 rounded-2xl border flex items-start gap-4 transition-all duration-500",
+                        isAllLinksProvided
+                            ? "bg-green-50 border-green-200"
+                            : "bg-amber-50 border-amber-200"
+                    )}>
+                        <div className={cn("p-2 rounded-lg", isAllLinksProvided ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700")}>
+                            {isAllLinksProvided ? <Unlock size={20} /> : <AlertCircle size={20} />}
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-slate-900">Shipment Status Gate</p>
+                            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                                Provide all three valid links and complete the 10-step checklist to unlock the final "Shipped" status badge.
+                            </p>
+                            {isAllLinksProvided && (
+                                <button
+                                    onClick={() => navigate('/dashboard/08-ship')}
+                                    className="mt-3 text-xs font-bold text-green-700 hover:underline flex items-center gap-1"
+                                >
+                                    Go to Ship Page <ArrowRight size={12} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button
-                className="bg-green-600 text-white px-12 py-4 rounded-2xl font-bold text-xl hover:bg-green-700 shadow-2xl shadow-green-200 transition-all transform hover:scale-105 active:scale-95"
-                onClick={() => alert("Shipment sequence initiated! 🚀")}
-            >
-                Ship to Production
-            </button>
         </div>
     );
 };

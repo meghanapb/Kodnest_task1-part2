@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Code, ClipboardList, Briefcase, User, GraduationCap, History, CheckSquare, Rocket } from 'lucide-react';
+import { LayoutDashboard, Code, ClipboardList, Briefcase, User, GraduationCap, History, CheckSquare, Rocket, ShieldCheck } from 'lucide-react';
 
 const SidebarLink = ({ to, icon: Icon, children }) => (
     <NavLink
@@ -40,6 +40,7 @@ const DashboardLayout = () => {
                     <SidebarLink to="/dashboard/resources" icon={Briefcase}>Resources</SidebarLink>
                     <SidebarLink to="/dashboard/profile" icon={User}>Profile</SidebarLink>
                     <SidebarLink to="/dashboard/07-test" icon={CheckSquare}>Test Checklist</SidebarLink>
+                    <SidebarLink to="/dashboard/proof" icon={ShieldCheck}>Proof</SidebarLink>
                     <SidebarLink to="/dashboard/08-ship" icon={Rocket}>Ship</SidebarLink>
                 </nav>
 
